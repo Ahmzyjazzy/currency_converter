@@ -6,7 +6,8 @@
   Global variables used across
   ==================================================================*/
   const currencyAPIUrlBase = 'https://free.currencyconverterapi.com/api/v5/';
-  const convertBtn = $('#convertbtn'), amountInp = $('#amount'), fromDrp = $('#from_drp'), toDrp = $('#to_drp');
+  const convertBtn = $('#convertbtn'), amountInp = $('#amount'), 
+        resultView = $('p.result'), fromDrp = $('#from_drp'), toDrp = $('#to_drp');
   let app = {
     currencyList : {},
   };
@@ -168,7 +169,8 @@
     const val = data[key];
     //calculate rate
     const result = parseFloat(amount) * parseFloat(val);
-    M.toast({html: `result: ${result}`});
+    resultView.html(result.toFixed(2));
+    M.toast({html: `result: ${result.toFixed(2)}`});
   }
   
   app.event = ()=>{

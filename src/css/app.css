@@ -1,3 +1,6 @@
-nav .brand-logo {
-    position: relative !important;
+p.result {
+    border: 1px solid #ccc;
+    font-size: 1.5em;
+    font-weight: 500;
 }
+
