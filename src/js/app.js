@@ -5,8 +5,7 @@
   /*==================================================================
   Global variables used across
   ==================================================================*/
-  const currencyAPIUrlBase = 'https://';
-  const currency_list = '';
+  const currencyAPIUrlBase = 'https://free.currencyconverterapi.com/api/v5/';
   const convertBtn = $('#convertbtn'), amountInp = $('#amount'), fromDrp = $('#from_drp'), toDrp = $('#to_drp');
   let app = {
     currencyList : {},
@@ -16,8 +15,6 @@
   /*==================================================================
   service worker functions below 
   ==================================================================*/
-
-  /* register sw*/
   app.registerServiceWorker = ()=>{
     if (!navigator.serviceWorker) return;
 
@@ -44,8 +41,6 @@
       });
     });
   };
-
-  /* track sw installing*/
   app.trackInstalling = (worker)=> {
     worker.addEventListener('statechange', function() {
       console.log('[ServiceWorker] statechange -trackInstalling');
@@ -54,14 +49,11 @@
       }
     });
   };
-
-  /* update sw*/
   app.updateWorker = (worker)=> {
     console.log('[ServiceWorker] action to update worker called -skipWaiting');
     worker.postMessage({action: 'skipWaiting'});
   };
   /*end service worker functions====================================*/
-
 
   /*==================================================================
   Currency APi functions
@@ -70,20 +62,18 @@
     return {
       getCurrencyList: ()=>{
         return new Promise((resolve,reject)=>{
-          fetch('https://free.currencyconverterapi.com/api/v5/currencies?').then((response)=>{ 
+          fetch(`${currencyAPIUrlBase}currencies?`).then((response)=>{ 
             response.json().then((data)=>{
-                if(data){
-                  resolve(data.results);
-                }else{
-                  reject('error fetching list');
-                }
+                resolve(data.results);
               });
+          }).catch((e)=> {
+              reject(e.message);
           });
         });
       },
       convertCurrency: (from,to)=>{
         return new Promise((resolve,reject)=>{
-          fetch(`https://free.currencyconverterapi.com/api/v5/convert?q=${from}_${to}&compact=ultra`).then((response)=>{ 
+          fetch(`${currencyAPIUrlBase}convert?q=${from}_${to}&compact=ultra`).then((response)=>{ 
             response.json().then((data)=>{
                 resolve(data);
               });
@@ -101,7 +91,7 @@
   ==================================================================*/
 
   /*display currency list*/
-  app.displayList = (lists)=>{
+  app.displayCurrencyList = (lists)=>{
     let htmlstr = '';
     for(let item of Object.keys(lists).sort()){
       let { currencyName } = lists[item];
@@ -112,37 +102,37 @@
     $('select').formSelect();
   }
 
-  /**/
+  /*save rateList to local DB*/
   app.saveRateLocal = (rateList)=>{
     window.localforage.setItem('rateList', rateList.sort());
   }
 
+  /*save rate logic*/
   app.saveRate = (data)=>{
     const key = Object.keys(data)[0];
     const val = data[key];
 
-    window.localforage.getItem('rateList', function(err, list) {
-      if (list) {
-        //create localDB -rateList and add item and update localDB -rateList
-        let exist = list.filter((rateObj)=>{
+    window.localforage.getItem('rateList', function(err, rates) {
+      if (rates) {
+        let exist = rates.filter((rateObj)=>{
           return (Object.keys(rateObj)[0] == key);
         });
-        
+
         if(exist.length > 0){
-          const newRateList = list.map((obj)=>{
-            let newobj = {};
-            newobj[key] = val;
+          //update rate if item exists in the local DB
+          const newRateList = rates.map((obj)=>{
+            let newobj = {}; newobj[key] = val;
             return Object.keys(obj)[0] == key ? newobj : obj;
           });
-          console.log('newRateList ', newRateList);
           app.saveRateLocal(newRateList);
         }else{
-          list.push(data);
-          app.saveRateLocal(list);
+          //insert rate if item does not exists in the local DB
+          rates.push(data);
+          app.saveRateLocal(rates);
         }
 
       } else {        
-        //create localDB -rateList and add item
+        //create localDB -rateList and add item for the first time
         let rateList = [];
         rateList.push(data);
         app.saveRateLocal(rateList);
@@ -176,6 +166,7 @@
     });
 
   }
+  
   /* app.init */
   app.init = ()=>{
     //call sw registration
@@ -185,13 +176,13 @@
       if (list) {
         console.log('offline list ', list);
         //display ui
-        app.displayList(list);
+        app.displayCurrencyList(list);
       } else {        
         app.Api().getCurrencyList().then((data)=>{
           window.localforage.setItem('currencyList', data);
           console.log('online list ', data);
           //display ui
-          app.displayList(data);
+          app.displayCurrencyList(data);
         });
       }
     }); 
