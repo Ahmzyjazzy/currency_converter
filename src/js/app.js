@@ -56,7 +56,7 @@
   /*end service worker functions====================================*/
 
   /*==================================================================
-  Currency APi functions
+  Currency online APi functions
   ==================================================================*/
   app.Api = ()=>{
     return {
@@ -84,6 +84,29 @@
       },
     }
   } 
+  /*end currency api functions====================================*/
+
+  /*==================================================================
+  Currency offline functions
+  ==================================================================*/
+  app.offlineCurrencyConvert = (data)=>{
+    const key = data;
+
+    return new Promise((resolve,reject)=>{
+      window.localforage.getItem('rateList', function(err, rates) {
+        if (rates) {
+          let exist = rates.filter((rateObj)=>{
+            return (Object.keys(rateObj)[0] == key);
+          });
+          (exist.length > 0) ? resolve(exist[0]) : reject(`Fetch failed: Please try connect to the internet`);
+        }else{
+          reject(`Fetch failed: Please try connect to the internet`);
+        }        
+      }); 
+    })
+    
+  }
+
   /*end currency api functions====================================*/
 
   /*==================================================================
@@ -139,6 +162,14 @@
       }
     }); 
   }
+
+  app.computeResult = (data,amount)=>{
+    const key = Object.keys(data)[0];
+    const val = data[key];
+    //calculate rate
+    const result = parseFloat(amount) * parseFloat(val);
+    M.toast({html: `result: ${result}`});
+  }
   
   app.event = ()=>{
 
@@ -152,21 +183,22 @@
         return;
       }
       app.Api().convertCurrency(from,to).then((data)=>{
-        console.log(data);
-        const key = Object.keys(data)[0];
-        const val = data[key];
-        //calculate rate
-        const result = parseFloat(amount) * parseFloat(val);
-        M.toast({html: `result: ${result}`});
+        app.computeResult(data,amount);
         //save to loacal DB
         app.saveRate(data);
       }).catch((err)=>{
-        M.toast({html: `error: ${err}` });
+        //when error try local DB        
+        app.offlineCurrencyConvert(`${from}_${to}`).then((data)=>{
+          app.computeResult(data,amount);
+        }).catch((err)=>{
+          M.toast({html: `${err}` });
+        });
+
       });
     });
 
   }
-  
+
   /* app.init */
   app.init = ()=>{
     //call sw registration
