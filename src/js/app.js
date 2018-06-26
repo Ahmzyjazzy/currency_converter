@@ -85,12 +85,10 @@
         return new Promise((resolve,reject)=>{
           fetch(`https://free.currencyconverterapi.com/api/v5/convert?q=${from}_${to}&compact=ultra`).then((response)=>{ 
             response.json().then((data)=>{
-                if(data){
-                  resolve(data);
-                }else{
-                  reject('error fetching list');
-                }
+                resolve(data);
               });
+          }).catch((e)=> {
+              reject(e.message);
           });
         });
       },
@@ -99,8 +97,9 @@
   /*end currency api functions====================================*/
 
   /*==================================================================
-  Currency ui functions
+  Currency functions
   ==================================================================*/
+
   /*display currency list*/
   app.displayList = (lists)=>{
     let htmlstr = '';
@@ -112,8 +111,47 @@
     $('select').html(htmlstr);
     $('select').formSelect();
   }
+
+  /**/
+  app.saveRateLocal = (rateList)=>{
+    window.localforage.setItem('rateList', rateList.sort());
+  }
+
+  app.saveRate = (data)=>{
+    const key = Object.keys(data)[0];
+    const val = data[key];
+
+    window.localforage.getItem('rateList', function(err, list) {
+      if (list) {
+        //create localDB -rateList and add item and update localDB -rateList
+        let exist = list.filter((rateObj)=>{
+          return (Object.keys(rateObj)[0] == key);
+        });
+        
+        if(exist.length > 0){
+          const newRateList = list.map((obj)=>{
+            let newobj = {};
+            newobj[key] = val;
+            return Object.keys(obj)[0] == key ? newobj : obj;
+          });
+          console.log('newRateList ', newRateList);
+          app.saveRateLocal(newRateList);
+        }else{
+          list.push(data);
+          app.saveRateLocal(list);
+        }
+
+      } else {        
+        //create localDB -rateList and add item
+        let rateList = [];
+        rateList.push(data);
+        app.saveRateLocal(rateList);
+      }
+    }); 
+  }
   
   app.event = ()=>{
+
     convertBtn.on('click', function(){
       const amount = amountInp.val();
       const from = fromDrp.val();
@@ -128,13 +166,15 @@
         const key = Object.keys(data)[0];
         const val = data[key];
         //calculate rate
-        
-        return { rate: val };
+        const result = parseFloat(amount) * parseFloat(val);
+        M.toast({html: `result: ${result}`});
+        //save to loacal DB
+        app.saveRate(data);
       }).catch((err)=>{
-        M.toast({html: err });
+        M.toast({html: `error: ${err}` });
       });
-      console.log(amount, from, to);
-    })
+    });
+
   }
   /* app.init */
   app.init = ()=>{
