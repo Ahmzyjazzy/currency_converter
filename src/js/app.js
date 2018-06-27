@@ -10,6 +10,9 @@
         resultView = $('p.result'), fromDrp = $('#from_drp'), toDrp = $('#to_drp');
   let app = {
     currencyList : {},
+    container: document.querySelector('.container-fluid'),
+    spinner: document.querySelector('.loader'),
+    isLoading: true,
   };
 
   /*==================================================================
@@ -119,6 +122,11 @@
     }
     $('select').html(htmlstr);
     $('select').formSelect();
+    if (app.isLoading) {
+      app.spinner.setAttribute('hidden', true);
+      app.container.removeAttribute('hidden');
+      app.isLoading = false;
+    }
   }
 
   /*save rateList to local DB*/
@@ -203,9 +211,11 @@
 
   /* app.init */
   app.init = ()=>{
-    //call sw registration
+    //expose all event
+    app.event();
+    //register service worker
     app.registerServiceWorker();
-    //currency list check
+   
     window.localforage.getItem('currencyList', function(err, list) {
       if (list) {
         console.log('offline list ', list);
@@ -224,7 +234,6 @@
 
   document.addEventListener('DOMContentLoaded', function() {
     app.init();
-    app.event();
   });
   
 })();

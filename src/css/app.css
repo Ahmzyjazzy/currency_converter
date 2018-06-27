@@ -1,3 +1,14 @@
+nav .brand-logo {
+  position: relative !important;
+}
+
+@media only screen and (max-width: 992px){
+  nav .brand-logo {
+    font-size: 1.5rem !important;
+    position: absolute !important;
+  }
+}
+
 p.result {
     border: 1px solid #ccc;
     font-size: 1.5em;
@@ -12,7 +23,7 @@ p.result {
           transform: translate(-50%, -50%); }
   .loader #spinner {
     box-sizing: border-box;
-    stroke: #673AB7;
+    stroke: #009688;
     stroke-width: 3px;
     -webkit-transform-origin: 50%;
             transform-origin: 50%;
