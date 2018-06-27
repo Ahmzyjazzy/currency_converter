@@ -11,7 +11,6 @@
   let app = {
     currencyList : {},
   };
-  /* end of global variable========================================*/
 
   /*==================================================================
   service worker functions below 
@@ -54,7 +53,6 @@
     console.log('[ServiceWorker] action to update worker called -skipWaiting');
     worker.postMessage({action: 'skipWaiting'});
   };
-  /*end service worker functions====================================*/
 
   /*==================================================================
   Currency online APi functions
@@ -85,7 +83,6 @@
       },
     }
   } 
-  /*end currency api functions====================================*/
 
   /*==================================================================
   Currency offline functions
@@ -107,8 +104,6 @@
     })
     
   }
-
-  /*end currency api functions====================================*/
 
   /*==================================================================
   Currency functions
@@ -169,13 +164,15 @@
     const val = data[key];
     //calculate rate
     const result = parseFloat(amount) * parseFloat(val);
-    resultView.html(result.toFixed(2));
-    M.toast({html: `result: ${result.toFixed(2)}`});
+    /^0\./.test(result) ? resultView.html(result.toFixed(4)) : resultView.html(result.toFixed(2));    
+    // M.toast({html: `result: ${result.toFixed(2)}`});
+    convertBtn.html('Convert');
   }
   
   app.event = ()=>{
 
     convertBtn.on('click', function(){
+      const $el = $(this);
       const amount = amountInp.val();
       const from = fromDrp.val();
       const to = toDrp.val();
@@ -184,6 +181,7 @@
         M.toast({html: 'Please specify amount!'});
         return;
       }
+      $el.html('Converting...');
       app.Api().convertCurrency(from,to).then((data)=>{
         app.computeResult(data,amount);
         //save to loacal DB
@@ -194,6 +192,8 @@
           app.computeResult(data,amount);
         }).catch((err)=>{
           M.toast({html: `${err}` });
+          resultView.html('0.00');
+          $el.html('Convert');
         });
 
       });
