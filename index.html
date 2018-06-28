@@ -22,7 +22,7 @@
   <body>
 
     <div class="navbar-fixed">
-      <nav class="navbar-fixed black lighten center">
+      <nav class="navbar-fixed pink center">
           <div class="nav-wrapper text-c center">
             <a href="/" class="brand-logo">Currency Converter</a> 
           </div>
@@ -30,42 +30,38 @@
     </div>
 
     <div class="container-fluid" hidden> 
-        <div class="row center" style="margin-top:2em">
-
-            <div class="col s12 m4 l4 offset-m4 offset-l4">
-                
-              <form class="col s12" onsubmit="event.preventDefault();">
-                
-                <div class="input-field col s12">
-                  <input type="number" id="amount" min="0" />
-                  <label for="amount">Enter Amount</label>
-                </div>
-
-                <div class="input-field col s12">                  
-                  <select id="from_drp"></select>
-                  <label>From</label>
-                </div>
-
-                <div class="input-field col s12">
-                  <select id="to_drp"></select>
-                  <label>To</label>
-                </div>
-
-                <div class="col s12">
-
-                  <p class="result">0.00</p>
-
-                </div>
-
-                <button class="btn waves-effect waves-light block" id="convertbtn" style="width: 95%;">
-                  Convert
-                </button>
-
-              </form>
-
-            </div>
+        <div class="row center" style="margin-top:2em" id="app">
         </div>
     </div>
+
+    <script id="converter-template" type="text/x-handlebars-template">
+      <div class="col s12 m4 l4 offset-m4 offset-l4">                
+        <form class="col s12" onsubmit="event.preventDefault();">
+          <div class="input-field col s12">
+            <input type="number" id="amount" min="0" />
+            <label for="amount">Enter Amount</label>
+          </div>
+          <div class="input-field col s12">                  
+            <select id="from_drp"></select>
+            <label>From</label>
+          </div>
+          <div class="input-field col s12">
+            <select id="to_drp"></select>
+            <label>To</label>
+          </div>
+          <div class="col s12">
+            <p class="result">0.00</p>
+          </div>
+          <button class="btn waves-effect waves-light block" id="convertbtn" style="width: 95%;">
+            Convert
+          </button>
+        </form>
+      </div>
+    </script>
+
+    <script id="localstore-template" type="text/x-handlebars-template">
+      
+    </script>
 
     <div class="loader">
         <svg viewBox="0 0 32 32" width="32" height="32">
@@ -74,14 +70,14 @@
     </div>
 
     <div class="fixed-action-btn toolbar">
-      <a class="btn-floating btn-large pink">
+      <a class="btn-floating btn-large teal">
         <i class="large material-icons">menu</i>
       </a>
-      <ul class="black lighten">
-        <li class="waves-effect waves-light"><a href="#!"><i class="material-icons">hourglass_empty</i></a></li>
-        <li class="waves-effect waves-light"><a href="#!"><i class="material-icons">format_list_bulleted</i></a></li>
-        <li class="waves-effect waves-light"><a href="#!"><i class="material-icons">settings_backup_restore</i></a></li>        
-        <li class="waves-effect waves-light"><a href="#!"><i class="material-icons">share</i></a></li>
+      <ul>
+        <li class="waves-effect waves-light"><a href="/" class="item"><i class="material-icons">hourglass_empty</i></a></li>
+        <li class="waves-effect waves-light"><a href="/Rates" class="item"><i class="material-icons">format_list_bulleted</i></a></li>
+        <!-- <li class="waves-effect waves-light"><a href="#!"><i class="material-icons">settings_backup_restore</i></a></li>         -->
+        <li class="waves-effect waves-light"><a href="#!" class="item"><i class="material-icons">share</i></a></li>
       </ul>
     </div>
 
@@ -89,6 +85,8 @@
     <script src="src/js/jquery.min.js"></script>
     <script src="src/materialize/js/materialize.js"></script>
     <script src="src/js/localforage-1.4.0.js"></script>
+    <script src="src/js/handlebars.min.js"></script>
+    <script src="src/js/vanilla-router.min.js"></script>
     <script src="src/js/app.js"></script>
 
   </body>

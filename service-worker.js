@@ -14,6 +14,8 @@ var staticFilesToCache = [
   '/src/js/jquery.min.js',
   '/src/js/app.js',
   '/src/js/localforage-1.4.0.js',
+  '/src/js/handlebars.min.js',
+  'src/js/vanilla-router.min.js',
   '/src/materialize/css/materialize.min.css',
   '/src/materialize/js/materialize.js',
   '/favicon.ico',
@@ -87,4 +89,4 @@ self.addEventListener('message', function(event) {
   }
 });
 
-//ahkjk
+//ah

@@ -6,10 +6,9 @@
   Global variables used across
   ==================================================================*/
   const currencyAPIUrlBase = 'https://free.currencyconverterapi.com/api/v5/';
-  const convertBtn = $('#convertbtn'), amountInp = $('#amount'), 
-        resultView = $('p.result'), fromDrp = $('#from_drp'), toDrp = $('#to_drp');
+  const el = $('#app');
+
   let app = {
-    currencyList : {},
     container: document.querySelector('.container-fluid'),
     spinner: document.querySelector('.loader'),
     isLoading: true,
@@ -84,31 +83,106 @@
           });
         });
       },
+      offlineCurrencyConvert: (data)=>{
+        const key = data;
+        return new Promise((resolve,reject)=>{
+          window.localforage.getItem('rateList', function(err, rates) {
+            if (rates) {
+              let exist = rates.filter((rateObj)=>{
+                return (Object.keys(rateObj)[0] == key);
+              });
+              (exist.length > 0) ? resolve(exist[0]) : reject(`Fetch failed: Please try connect to the internet`);
+            }else{
+              reject(`Fetch failed: Please try connect to the internet`);
+            }        
+          }); 
+        })
+      }
     }
   } 
 
+
   /*==================================================================
-  Currency offline functions
+  app route and templates
   ==================================================================*/
-  app.offlineCurrencyConvert = (data)=>{
-    const key = data;
 
-    return new Promise((resolve,reject)=>{
-      window.localforage.getItem('rateList', function(err, rates) {
-        if (rates) {
-          let exist = rates.filter((rateObj)=>{
-            return (Object.keys(rateObj)[0] == key);
-          });
-          (exist.length > 0) ? resolve(exist[0]) : reject(`Fetch failed: Please try connect to the internet`);
-        }else{
-          reject(`Fetch failed: Please try connect to the internet`);
-        }        
-      }); 
-    })
-  }
+  /* Compile Handlebar Templates*/
+  const ratesTemplate = Handlebars.compile($('#converter-template').html());
+  const storeTemplate = Handlebars.compile($('#localstore-template').html());
+
+  const router = new Router({
+    mode: 'history',
+    page404: (path) => {
+      const html = errorTemplate({
+        color: 'yellow',
+        title: 'Error 404 - Page NOT Found!',
+        message: `The path '/${path}' does not exist on this site`,
+      });
+      el.html(html);
+    },
+  });
+
+  // Display Latest Currency Rates
+  router.add('/', async () => {
+    // Display loader first
+    let html = ratesTemplate();
+    el.html(html);
+    window.localforage.getItem('currencyList', function(err, list) {
+      if (list) {
+        console.log('offline list ', list);
+        //display ui
+        app.displayCurrencyList(list);
+      } else {        
+        app.Api().getCurrencyList().then((data)=>{
+          window.localforage.setItem('currencyList', data);
+          console.log('online list ', data);
+          //display ui
+          app.displayCurrencyList(data);
+        });
+      }
+    }); 
+
+    $(document).on('click','#convertbtn', function(){
+      const amountInp = $('#amount'), resultView = $('p.result'), fromDrp = $('#from_drp'), toDrp = $('#to_drp');
+      const $el = $(this);
+      const amount = amountInp.val();
+      const from = fromDrp.val();
+      const to = toDrp.val();
+      if(amount.length == 0){
+        //display error
+        M.toast({html: 'Please specify amount!'});
+        return;
+      }
+      //for same currency e.g NGN to NGN
+      if(from === to){
+        resultView.html(app.addCommas(parseFloat(amount).toFixed(2)));
+        return
+      }
+      $el.html('Converting...');
+      app.Api().convertCurrency(from,to).then((data)=>{
+        app.computeResult(data,amount);
+        //save to loacal DB
+        app.saveRate(data);
+      }).catch((err)=>{
+        //when error try local DB        
+        app.Api().offlineCurrencyConvert(`${from}_${to}`).then((data)=>{
+          app.computeResult(data,amount);
+        }).catch((err)=>{
+          M.toast({html: `${err}` });
+          resultView.html('0.00');
+          $el.html('Convert');
+        });
+
+      });
+    });
+
+  });
+
+  router.navigateTo(window.location.pathname);
+
 
   /*==================================================================
-  Helpers functions
+  Utility functions
   ==================================================================*/
   app.addCommas = function (nStr) {
       nStr += '';
@@ -121,10 +195,6 @@
       }
       return x1 + x2;
   };
-
-  /*==================================================================
-  Currency functions
-  ==================================================================*/
 
   /*display currency list*/
   app.displayCurrencyList = (lists)=>{
@@ -193,38 +263,25 @@
   
   app.event = ()=>{
 
-    convertBtn.on('click', function(){
-      const $el = $(this);
-      const amount = amountInp.val();
-      const from = fromDrp.val();
-      const to = toDrp.val();
-      if(amount.length == 0){
-        //display error
-        M.toast({html: 'Please specify amount!'});
-        return;
-      }
-      //for same currency e.g NGN to NGN
-      if(from === to){
-        resultView.html(app.addCommas(parseFloat(amount).toFixed(2)));
-        return
-      }
-      $el.html('Converting...');
-      app.Api().convertCurrency(from,to).then((data)=>{
-        app.computeResult(data,amount);
-        //save to loacal DB
-        app.saveRate(data);
-      }).catch((err)=>{
-        //when error try local DB        
-        app.offlineCurrencyConvert(`${from}_${to}`).then((data)=>{
-          app.computeResult(data,amount);
-        }).catch((err)=>{
-          M.toast({html: `${err}` });
-          resultView.html('0.00');
-          $el.html('Convert');
-        });
+  // Highlight Active Menu on Load
+  const link = $(`a[href$='${window.location.pathname}']`);
+  link.addClass('active');
 
-      });
-    });
+  $('a').on('click', (event) => {
+    // Block page load
+    event.preventDefault();
+
+    // Highlight Active Menu on Click
+    const target = $(event.target);
+    $('.item').removeClass('active');
+    target.addClass('active');
+
+    // Navigate to clicked url
+    const href = target.attr('href');
+    const path = href.substr(href.lastIndexOf('/'));
+    console.log(path);
+    router.navigateTo(path);
+  });
   }
 
   /* app.init */
@@ -233,21 +290,6 @@
     app.event();
     //register service worker
     app.registerServiceWorker();
-   
-    window.localforage.getItem('currencyList', function(err, list) {
-      if (list) {
-        console.log('offline list ', list);
-        //display ui
-        app.displayCurrencyList(list);
-      } else {        
-        app.Api().getCurrencyList().then((data)=>{
-          window.localforage.setItem('currencyList', data);
-          console.log('online list ', data);
-          //display ui
-          app.displayCurrencyList(data);
-        });
-      }
-    }); 
   }
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -258,7 +300,6 @@
       // direction: 'left'
       toolbarEnabled: true
     });
-
   });
   
 })();
