@@ -203,6 +203,11 @@
         M.toast({html: 'Please specify amount!'});
         return;
       }
+      //for same currency e.g NGN to NGN
+      if(from === to){
+        resultView.html(app.addCommas(parseFloat(amount).toFixed(2)));
+        return
+      }
       $el.html('Converting...');
       app.Api().convertCurrency(from,to).then((data)=>{
         app.computeResult(data,amount);
@@ -220,7 +225,6 @@
 
       });
     });
-
   }
 
   /* app.init */
@@ -248,6 +252,13 @@
 
   document.addEventListener('DOMContentLoaded', function() {
     app.init();
+
+    var elems = document.querySelectorAll('.fixed-action-btn');
+    var instances = M.FloatingActionButton.init(elems, {
+      // direction: 'left'
+      toolbarEnabled: true
+    });
+
   });
   
 })();

@@ -1,8 +1,10 @@
 //service worker
-var staticCacheName = 'currency-static-v1';
+var staticCacheName = 'currency-static-v2',
+    materialIcon = 'currency-icon';
 
 var allCaches = [
-  staticCacheName
+  staticCacheName,
+  materialIcon
 ];
 
 var staticFilesToCache = [
@@ -45,6 +47,13 @@ self.addEventListener('activate', function(event) {
 
 
 self.addEventListener('fetch', function(event) {
+  var requestUrl = new URL(event.request.url);
+
+  if (requestUrl.origin !== location.origin) {    
+    // check google fonts request and cache
+    event.respondWith(serveFonts(event.request));
+    return; 
+  }
   event.respondWith(
     caches.match(event.request).then(function(response) {
       if (response) return response;
@@ -56,11 +65,26 @@ self.addEventListener('fetch', function(event) {
   );
 });
 
+function serveFonts(request) {
+  var storageUrl = request.url;
+  console.log(storageUrl);
+
+  return caches.open(materialIcon).then(function(cache) {
+    return cache.match(storageUrl).then(function(response) {
+      if (response) return response;
+
+      return fetch(request).then(function(networkResponse) {
+        cache.put(storageUrl, networkResponse.clone());
+        return networkResponse;
+      });
+    });
+  });
+}
+
 self.addEventListener('message', function(event) {
   if (event.data.action === 'skipWaiting') {
     self.skipWaiting();
   }
 });
 
-//ahmed
-
+//ahkjk

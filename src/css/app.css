@@ -11,8 +11,12 @@ nav .brand-logo {
 
 p.result {
     border: 1px solid #ccc;
-    font-size: 1.5em;
+    font-size: 1.3em;
     font-weight: 500;
+}
+
+.black.lighten {
+    background-color: #000000c2 !important;
 }
 
 .loader {

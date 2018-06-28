@@ -4,17 +4,27 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0"/>
     <title>Currency Converter</title>
-
-    <link href="src/materialize/css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection"s>      
+    <link rel="manifest" href="/manifest.json">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link href="src/materialize/css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection">      
     <link href="src/css/app.css" type="text/css" rel="stylesheet" media="screen,projection"/>
-
+    <!-- Add to home screen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Currency Converter">
+    <link rel="apple-touch-icon" sizes="60x60" href="src/images/icons/apple-60.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="src/images/icons/apple-76.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="src/images/icons/apple-120.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="src/images/icons/apple-152.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="src/images/icons/apple-167.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="src/images/icons/apple-180.png">
   </head>
   <body>
 
     <div class="navbar-fixed">
-      <nav class="navbar-fixed pink center">
+      <nav class="navbar-fixed black lighten center">
           <div class="nav-wrapper text-c center">
-            <a href="/" class="brand-logo">Converter</a> 
+            <a href="/" class="brand-logo">Currency Converter</a> 
           </div>
         </nav>
     </div>
@@ -47,7 +57,7 @@
 
                 </div>
 
-                <button class="btn waves-effect waves-light block" id="convertbtn">
+                <button class="btn waves-effect waves-light block" id="convertbtn" style="width: 95%;">
                   Convert
                 </button>
 
@@ -61,6 +71,18 @@
         <svg viewBox="0 0 32 32" width="32" height="32">
           <circle id="spinner" cx="16" cy="16" r="14" fill="none"></circle>
         </svg>
+    </div>
+
+    <div class="fixed-action-btn toolbar">
+      <a class="btn-floating btn-large pink">
+        <i class="large material-icons">menu</i>
+      </a>
+      <ul class="black lighten">
+        <li class="waves-effect waves-light"><a href="#!"><i class="material-icons">hourglass_empty</i></a></li>
+        <li class="waves-effect waves-light"><a href="#!"><i class="material-icons">format_list_bulleted</i></a></li>
+        <li class="waves-effect waves-light"><a href="#!"><i class="material-icons">settings_backup_restore</i></a></li>        
+        <li class="waves-effect waves-light"><a href="#!"><i class="material-icons">share</i></a></li>
+      </ul>
     </div>
 
     <!--  Scripts-->
