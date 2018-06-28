@@ -105,8 +105,22 @@
         }        
       }); 
     })
-    
   }
+
+  /*==================================================================
+  Helpers functions
+  ==================================================================*/
+  app.addCommas = function (nStr) {
+      nStr += '';
+      let x = nStr.split('.'),
+      x1 = x[0],
+      x2 = x.length > 1 ? '.' + x[1] : '';
+      const rgx = /(\d+)(\d{3})/;
+      while (rgx.test(x1)) {
+          x1 = x1.replace(rgx, '$1' + ',' + '$2');
+      }
+      return x1 + x2;
+  };
 
   /*==================================================================
   Currency functions
@@ -172,7 +186,7 @@
     const val = data[key];
     //calculate rate
     const result = parseFloat(amount) * parseFloat(val);
-    /^0\./.test(result) ? resultView.html(result.toFixed(4)) : resultView.html(result.toFixed(2));    
+    /^0\./.test(result) ? resultView.html(app.addCommas(result.toFixed(4))) : resultView.html(app.addCommas(result.toFixed(2)));    
     // M.toast({html: `result: ${result.toFixed(2)}`});
     convertBtn.html('Convert');
   }
