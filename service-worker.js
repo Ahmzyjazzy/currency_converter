@@ -8,16 +8,16 @@ var allCaches = [
 ];
 
 var staticFilesToCache = [
-  '/',
-  '/index.html',
-  '/src/css/app.css',
-  '/src/js/jquery.min.js',
-  '/src/js/app.js',
-  '/src/js/localforage-1.4.0.js',
-  '/src/js/handlebars.min.js',
-  '/src/materialize/css/materialize.min.css',
-  '/src/materialize/js/materialize.js',
-  '/favicon.ico',
+  '/currency_converter/',
+  '/currency_converter/index.html',
+  '/currency_converter/src/css/app.css',
+  '/currency_converter/src/js/jquery.min.js',
+  '/currency_converter/src/js/app.js',
+  '/currency_converter/src/js/localforage-1.4.0.js',
+  '/currency_converter/src/js/handlebars.min.js',
+  '/currency_converter/src/materialize/css/materialize.min.css',
+  '/currency_converter/src/materialize/js/materialize.js',
+  '/currency_converter/favicon.ico',
 ];
 
 self.addEventListener('install', function(e) {
