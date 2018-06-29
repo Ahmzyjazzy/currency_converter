@@ -1,4 +1,4 @@
-//service worker
+//service worker files
 var staticCacheName = 'currency-static-v2',
     materialIcon = 'currency-icon';
 
