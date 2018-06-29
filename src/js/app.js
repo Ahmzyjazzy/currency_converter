@@ -3,14 +3,18 @@
   'use strict';
 
   /*==================================================================
-  Global variables used across
+  global variables used across
   ==================================================================*/
-  const currencyAPIUrlBase = 'https://free.currencyconverterapi.com/api/v5/';
   const el = $('#app');
-
+  const currencyAPIUrlBase = 'https://free.currencyconverterapi.com/api/v5/';
+  const template = {
+    rates: Handlebars.compile($('#converter-template').html()),
+    store: Handlebars.compile($('#localstore-template').html())
+  }
   let app = {
     container: document.querySelector('.container-fluid'),
     spinner: document.querySelector('.loader'),
+    pageTitle: document.querySelector  ('.brand-logo'),
     isLoading: true,
   };
 
@@ -57,7 +61,7 @@
   };
 
   /*==================================================================
-  Currency online APi functions
+  Currency APi functions
   ==================================================================*/
   app.Api = ()=>{
     return {
@@ -83,7 +87,7 @@
           });
         });
       },
-      offlineCurrencyConvert: (data)=>{
+      offlineConvert: (data)=>{
         const key = data;
         return new Promise((resolve,reject)=>{
           window.localforage.getItem('rateList', function(err, rates) {
@@ -101,85 +105,40 @@
     }
   } 
 
-
   /*==================================================================
-  app route and templates
+  app route and view
   ==================================================================*/
-
-  /* Compile Handlebar Templates*/
-  const ratesTemplate = Handlebars.compile($('#converter-template').html());
-  const storeTemplate = Handlebars.compile($('#localstore-template').html());
-
-  const router = new Router({
-    mode: 'history',
-    page404: (path) => {
-      const html = errorTemplate({
-        color: 'yellow',
-        title: 'Error 404 - Page NOT Found!',
-        message: `The path '/${path}' does not exist on this site`,
-      });
-      el.html(html);
-    },
-  });
-
-  // Display Latest Currency Rates
-  router.add('/', async () => {
-    // Display loader first
-    let html = ratesTemplate();
-    el.html(html);
-    window.localforage.getItem('currencyList', function(err, list) {
-      if (list) {
-        console.log('offline list ', list);
-        //display ui
-        app.displayCurrencyList(list);
-      } else {        
-        app.Api().getCurrencyList().then((data)=>{
-          window.localforage.setItem('currencyList', data);
-          console.log('online list ', data);
-          //display ui
-          app.displayCurrencyList(data);
-        });
-      }
-    }); 
-
-    $(document).on('click','#convertbtn', function(){
-      const amountInp = $('#amount'), resultView = $('p.result'), fromDrp = $('#from_drp'), toDrp = $('#to_drp');
-      const $el = $(this);
-      const amount = amountInp.val();
-      const from = fromDrp.val();
-      const to = toDrp.val();
-      if(amount.length == 0){
-        //display error
-        M.toast({html: 'Please specify amount!'});
-        return;
-      }
-      //for same currency e.g NGN to NGN
-      if(from === to){
-        resultView.html(app.addCommas(parseFloat(amount).toFixed(2)));
-        return
-      }
-      $el.html('Converting...');
-      app.Api().convertCurrency(from,to).then((data)=>{
-        app.computeResult(data,amount);
-        //save to loacal DB
-        app.saveRate(data);
-      }).catch((err)=>{
-        //when error try local DB        
-        app.Api().offlineCurrencyConvert(`${from}_${to}`).then((data)=>{
-          app.computeResult(data,amount);
-        }).catch((err)=>{
-          M.toast({html: `${err}` });
-          resultView.html('0.00');
-          $el.html('Convert');
-        });
-
-      });
-    });
-
-  });
-
-  router.navigateTo(window.location.pathname);
-
+  app.switchView = (view,temp)=>{
+    switch(view){
+      case 'currency_view':
+        app.pageTitle.innerHTML = 'Currency Converter';
+        window.localforage.getItem('currencyList', function(err, list) {
+          if (list) {
+            //display ui
+            app.displayCurrencyList(list,temp);
+          } else {        
+            app.Api().getCurrencyList().then((data)=>{
+              window.localforage.setItem('currencyList', data);
+              //display ui
+              app.displayCurrencyList(data,temp);
+            });
+          }
+        }); 
+      break;
+      case 'store_view':
+        app.pageTitle.innerHTML = 'Rates Store';
+        
+        window.localforage.getItem('rateList', function(err, list) {
+          if (list) {
+            //display ui
+            app.displayGrid(list,temp);
+          } else {        
+            M.toast({html: `Oops! Local store is empty` });
+          }
+        }); 
+      break;
+    }
+  } 
 
   /*==================================================================
   Utility functions
@@ -195,16 +154,22 @@
       }
       return x1 + x2;
   };
-
-  /*display currency list*/
-  app.displayCurrencyList = (lists)=>{
-    let htmlstr = '';
-    for(let item of Object.keys(lists).sort()){
-      let { currencyName } = lists[item];
-      let opt = `<option value="${item}">${item} ( ${currencyName} )</option>`;
-      htmlstr += opt;
+  app.displayCurrencyList = (lists,temp)=>{
+    const context = {
+      currency_list: ((items)=>{
+        const arrayList = []; 
+        for(let i of Object.keys(items).sort()){
+          let obj = {};
+          let { id, currencyName, currencySymbol } = items[i];
+          obj.id = id;
+          obj.name = currencyName;
+          obj.symbol = currencySymbol;
+          arrayList.push(obj);
+        }
+        return arrayList;
+      })(lists),      
     }
-    $('select').html(htmlstr);
+    el.html(temp(context));
     $('select').formSelect();
     if (app.isLoading) {
       app.spinner.setAttribute('hidden', true);
@@ -212,13 +177,34 @@
       app.isLoading = false;
     }
   }
-
-  /*save rateList to local DB*/
+  app.displayGrid = (lists,temp)=>{
+    const context = {
+      ratesList: ((items)=>{
+        const arrayList = []; 
+        for(const t of items.sort()){
+          const from = Object.keys(t)[0].split('_')[0];
+          const to = Object.keys(t)[0].split('_')[1];
+          const ratevalue = parseFloat(t[Object.keys(t)[0]]);
+          const rate = /^0\./.test(ratevalue)? app.addCommas(ratevalue.toFixed(4)) : app.addCommas(ratevalue.toFixed(2));
+          const obj = {};
+          obj.from = from;
+          obj.to = to;
+          obj.rate = rate;
+          arrayList .push(obj);
+        }
+        return arrayList;
+      })(lists),      
+    }
+    el.html(temp(context));
+    if (app.isLoading) {
+      app.spinner.setAttribute('hidden', true);
+      app.container.removeAttribute('hidden');
+      app.isLoading = false;
+    }
+  }
   app.saveRateLocal = (rateList)=>{
     window.localforage.setItem('rateList', rateList.sort());
   }
-
-  /*save rate logic*/
   app.saveRate = (data)=>{
     const key = Object.keys(data)[0];
     const val = data[key];
@@ -250,56 +236,88 @@
       }
     }); 
   }
-
   app.computeResult = (data,amount)=>{
     const key = Object.keys(data)[0];
     const val = data[key];
+    const resultView = $(document ).find('p.result');
+    const convertBtn  = $(document).find('#convertbtn');
     //calculate rate
     const result = parseFloat(amount) * parseFloat(val);
     /^0\./.test(result) ? resultView.html(app.addCommas(result.toFixed(4))) : resultView.html(app.addCommas(result.toFixed(2)));    
     // M.toast({html: `result: ${result.toFixed(2)}`});
     convertBtn.html('Convert');
   }
-  
   app.event = ()=>{
+    // Highlight Active Menu onLoad
+    const link = $(`a[href$='${window.location.pathname}']`);
+    link.addClass('active');
 
-  // Highlight Active Menu on Load
-  const link = $(`a[href$='${window.location.pathname}']`);
-  link.addClass('active');
+    $(document).on('click','#convertbtn', function(){
+        const amountInp = $('#amount'), resultView = $('p.result'), fromDrp = $('#from_drp'), toDrp = $('#to_drp');
+        const $el = $(this);
+        const amount = amountInp.val();
+        const from = fromDrp.val();
+        const to = toDrp.val();
+        if(amount.length == 0){
+          //display error
+          M.toast({html: 'Please specify amount!'});
+          return;
+        }
+        //for same currency e.g NGN to NGN
+        if(from === to){
+          resultView.html(app.addCommas(parseFloat(amount).toFixed(2)));
+          return
+        }
+        $el.html('Converting...');
+        app.Api().convertCurrency(from,to).then((data)=>{
+          app.computeResult(data,amount);
+          //save to loacal DB
+          app.saveRate(data);
+        }).catch((err)=>{
+          //when error try local DB        
+          app.Api().offlineConvert(`${from}_${to}`).then((data)=>{
+            app.computeResult(data,amount);
+          }).catch((err)=>{
+            M.toast({html: `${err}` });
+            resultView.html('0.00');
+            $el.html('Convert');
+          });
 
-  $('a').on('click', (event) => {
-    // Block page load
-    event.preventDefault();
+        });
+    });
 
-    // Highlight Active Menu on Click
-    const target = $(event.target);
-    $('.item').removeClass('active');
-    target.addClass('active');
+    $('a.menu').on('click', function(event) {
+      // Block page load
+      event.preventDefault();
 
-    // Navigate to clicked url
-    const href = target.attr('href');
-    const path = href.substr(href.lastIndexOf('/'));
-    console.log(path);
-    router.navigateTo(path);
-  });
+      // Highlight Active Menu on Click
+      const target = $(this);
+      $('.menu').removeClass('active');
+      target.addClass('active');
+
+      // Navigate to clicked view
+      const href = target.attr('href');
+      const temp = target.attr('data-temp');
+      app.switchView(href,template[temp]);
+    });
   }
-
   /* app.init */
   app.init = ()=>{
     //expose all event
     app.event();
     //register service worker
     app.registerServiceWorker();
+    //initial view
+    app.switchView('currency_view',template.rates);
   }
 
   document.addEventListener('DOMContentLoaded', function() {
     app.init();
 
-    var elems = document.querySelectorAll('.fixed-action-btn');
-    var instances = M.FloatingActionButton.init(elems, {
-      // direction: 'left'
-      toolbarEnabled: true
+    const elems = document.querySelectorAll('.fixed-action-btn');
+    const instances = M.FloatingActionButton.init(elems, {
+        toolbarEnabled: true
+      });
     });
-  });
   
 })();
