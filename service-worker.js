@@ -1,4 +1,4 @@
-//service worker
+//service worker 
 var staticCacheName = 'currency-static-v1',
     materialIcon = 'currency-icon',
     currencies = 'currency-list';
@@ -10,18 +10,18 @@ var allCaches = [
 ];
 
 var staticFilesToCache = [
-  '/currency_converter/',
-  '/currency_converter/index.html',
-  '/currency_converter/src/css/app.css',
-  '/currency_converter/src/js/jquery.min.js',
-  '/currency_converter/src/js/app.js',
-  '/currency_converter/src/js/localforage-1.4.0.js',
-  '/currency_converter/src/js/handlebars.min.js',
-  '/currency_converter/src/materialize/css/materialize.min.css',
-  '/currency_converter/src/materialize/js/materialize.js',
-  '/currency_converter/src/select2/css/select2.min.css',
-  '/currency_converter/src/select2/js/select2.full.min.js',
-  '/currency_converter/favicon.ico',
+  '/',
+  '/index.html',
+  '/src/css/app.css',
+  '/src/js/jquery.min.js',
+  '/src/js/app.js',
+  '/src/js/localforage-1.4.0.js',
+  '/src/js/handlebars.min.js',
+  '/src/materialize/css/materialize.min.css',
+  '/src/materialize/js/materialize.js',
+  '/src/select2/css/select2.min.css',
+  '/src/select2/js/select2.full.min.js',
+  '/favicon.ico',
 ];
 
 self.addEventListener('install', function(e) {
@@ -70,6 +70,8 @@ self.addEventListener('fetch', function(event) {
       if (response) return response;
       return fetch(event.request).then(function(response) {
         return response
+      }).catch((e)=>{
+        console.log(`ServiceWorker failed request: ${event.request}`);
       });
     })
   );

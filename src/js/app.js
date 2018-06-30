@@ -24,7 +24,7 @@
   app.registerServiceWorker = ()=>{
     if (!navigator.serviceWorker) return;
 
-    navigator.serviceWorker.register('/currency_converter/service-worker.js').then((reg)=> {
+    navigator.serviceWorker.register('/service-worker.js').then((reg)=> {
       if (!navigator.serviceWorker.controller) {
         return;
       }
@@ -108,7 +108,7 @@
   /*==================================================================
   app route and view
   ==================================================================*/
-  app.switchView = (view,temp)=>{
+  app.switchView = (view,temp,cb)=>{
     switch(view){
       case 'currency_view':
         app.pageTitle.innerHTML = 'Currency Converter';
@@ -131,6 +131,7 @@
         }); 
       break;
     }
+    (cb && cb !== undefined && typeof(cb) == 'function') && cb();
   } 
 
   /*==================================================================
@@ -179,7 +180,8 @@
           const from = Object.keys(t)[0].split('_')[0];
           const to = Object.keys(t)[0].split('_')[1];
           const ratevalue = parseFloat(t[Object.keys(t)[0]]);
-          const rate = /^0\./.test(ratevalue)? app.addCommas(ratevalue.toFixed(4)) : app.addCommas(ratevalue.toFixed(2));
+          const rate = /^0\./.test(ratevalue)? app.addCommas(ratevalue.toFixed(4)) 
+                : app.addCommas(ratevalue.toFixed(2));
           const obj = {};
           obj.from = from;
           obj.to = to;
@@ -237,7 +239,8 @@
     const convertBtn  = $(document).find('#convertbtn');
     //calculate rate
     const result = parseFloat(amount) * parseFloat(val);
-    /^0\./.test(result) ? resultView.html(app.addCommas(result.toFixed(4))) : resultView.html(app.addCommas(result.toFixed(2)));    
+    /^0\./.test(result) ? resultView.html(app.addCommas(result.toFixed(4))) 
+          : resultView.html(app.addCommas(result.toFixed(2)));    
     // M.toast({html: `result: ${result.toFixed(2)}`});
     convertBtn.html('Convert');
   }
@@ -279,6 +282,37 @@
 
         });
     });
+
+   $(document).on('click','.rate_item', function(){
+      const target = $(this);
+      const from_id = target.attr('data-from');
+      const to_id = target.attr('data-to');
+      const rate = parseFloat(target.attr('data-rate'));
+
+      console.log(from_id, to_id, rate);
+
+      app.switchView('currency_view',template.rates, ()=>{
+
+        
+        const target = $(this);
+        $('.menu').removeClass('active');
+        $('[href="currency_view"]').addClass('active');
+        
+        setTimeout(()=>{
+          const amountInp = $(document).find('#amount'), resultView = $(document).find('p.result'), 
+              fromDrp = $(document).find('#from_drp'), toDrp = $(document).find('#to_drp');
+
+          console.log(amountInp.length, fromDrp.length, toDrp.length);
+          amountInp.val(1).focus();  
+          fromDrp.select2('val',from_id);
+          toDrp.select2('val',to_id);
+          /^0\./.test(rate) ? resultView.html(app.addCommas(rate.toFixed(4))) 
+                : resultView.html(app.addCommas(rate.toFixed(2)));
+        },1000);
+        
+      });
+
+   });
 
     $('a.menu').on('click', function(event) {
       // Block page load
