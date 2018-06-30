@@ -78,7 +78,6 @@ function serveFiles(request, cacheName) {
   /*check cache first then network*/
   return caches.open(cacheName).then(function(cache) {
     return cache.match(storageUrl).then(function(response) {
-      console.log('[ServiceWorker] Response', response.url);
       if (response) return response;
 
       return fetch(request).then(function(networkResponse) {
