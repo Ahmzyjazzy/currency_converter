@@ -115,7 +115,6 @@
         app.Api().getCurrencyList().then((data)=>{
           window.localforage.setItem('currencyList', data);
           //display ui
-          console.log(data);
           app.displayCurrencyList(data,temp);
         });
       break;
@@ -164,7 +163,8 @@
       })(lists),      
     }
     el.html(temp(context));
-    $('select').formSelect();
+    $('select').select2({width:'100%'});
+
     if (app.isLoading) {
       app.spinner.setAttribute('hidden', true);
       app.container.removeAttribute('hidden');

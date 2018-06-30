@@ -19,6 +19,8 @@ var staticFilesToCache = [
   '/currency_converter/src/js/handlebars.min.js',
   '/currency_converter/src/materialize/css/materialize.min.css',
   '/currency_converter/src/materialize/js/materialize.js',
+  '/currency_converter/src/select2/css/select2.min.css',
+  '/currency_converter/src/select2/js/select2.full.min.js',
   '/currency_converter/favicon.ico',
 ];
 
@@ -94,4 +96,4 @@ self.addEventListener('message', function(event) {
   }
 });
 
-////
+//
