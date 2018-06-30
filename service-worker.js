@@ -9,19 +9,21 @@ var allCaches = [
   currencies
 ];
 
+var scope = '/currency_converter/';
+
 var staticFilesToCache = [
-  '/',
-  '/index.html',
-  '/src/css/app.css',
-  '/src/js/jquery.min.js',
-  '/src/js/app.js',
-  '/src/js/localforage-1.4.0.js',
-  '/src/js/handlebars.min.js',
-  '/src/materialize/css/materialize.min.css',
-  '/src/materialize/js/materialize.js',
-  '/src/select2/css/select2.min.css',
-  '/src/select2/js/select2.full.min.js',
-  '/favicon.ico',
+  `${scope}`,
+  `${scope}index.html`,
+  `${scope}src/css/app.css`,
+  `${scope}src/js/jquery.min.js`,
+  `${scope}src/js/app.js`,
+  `${scope}src/js/localforage-1.4.0.js`,
+  `${scope}src/js/handlebars.min.js`,
+  `${scope}src/materialize/css/materialize.min.css`,
+  `${scope}src/materialize/js/materialize.js`,
+  `${scope}src/select2/css/select2.min.css`,
+  `${scope}src/select2/js/select2.full.min.js`,
+  `${scope}favicon.ico`,
 ];
 
 self.addEventListener('install', function(e) {
