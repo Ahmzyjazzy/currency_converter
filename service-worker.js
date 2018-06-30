@@ -1,10 +1,18 @@
+<<<<<<< HEAD
 //service worker file
 var staticCacheName = 'currency-static-v2',
     materialIcon = 'currency-icon';
+=======
+//service worker
+var staticCacheName = 'currency-static-v1',
+    materialIcon = 'currency-icon',
+    currencies = 'currency-list';
+>>>>>>> master
 
 var allCaches = [
   staticCacheName,
-  materialIcon
+  materialIcon,
+  currencies
 ];
 
 var staticFilesToCache = [
@@ -51,27 +59,32 @@ self.addEventListener('fetch', function(event) {
   var requestUrl = new URL(event.request.url);
 
   if (requestUrl.origin !== location.origin) {    
-    // check google fonts request and cache
-    event.respondWith(serveFonts(event.request));
+    // check google fonts request
+    if(requestUrl.origin == 'https://fonts.gstatic.com' || requestUrl.pathname.startsWith('/icon')) 
+      event.respondWith(serveFiles(event.request, materialIcon));
+    // check currency list request
+    if(requestUrl.pathname.endsWith('currencies')) {
+      event.respondWith(serveFiles(event.request, currencies));
+    }
     return; 
   }
+
   event.respondWith(
     caches.match(event.request).then(function(response) {
       if (response) return response;
       return fetch(event.request).then(function(response) {
-        // console.log('[ServiceWorker] Response', response);
         return response
       });
     })
   );
 });
 
-function serveFonts(request) {
-  var storageUrl = request.url;
-  console.log(storageUrl);
-
-  return caches.open(materialIcon).then(function(cache) {
+function serveFiles(request, cacheName) {
+  var storageUrl = (request.url.endsWith('currencies?'))? request.url.slice(8).split('/')[3] : request.url;
+  /*check cache first then network*/
+  return caches.open(cacheName).then(function(cache) {
     return cache.match(storageUrl).then(function(response) {
+      console.log('[ServiceWorker] Response', response.url);
       if (response) return response;
 
       return fetch(request).then(function(networkResponse) {
@@ -87,3 +100,5 @@ self.addEventListener('message', function(event) {
     self.skipWaiting();
   }
 });
+
+////
