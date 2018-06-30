@@ -54,7 +54,7 @@ self.addEventListener('fetch', function(event) {
 
   if (requestUrl.origin !== location.origin) {    
     // check google fonts request
-    if(requestUrl.pathname.endsWith('.tff') || requestUrl.pathname.startsWith('/icon')) 
+    if(requestUrl.origin == 'https://fonts.gstatic.com' || requestUrl.pathname.startsWith('/icon')) 
       event.respondWith(serveFiles(event.request, materialIcon));
     // check currency list request
     if(requestUrl.pathname.endsWith('currencies')) {
@@ -67,7 +67,6 @@ self.addEventListener('fetch', function(event) {
     caches.match(event.request).then(function(response) {
       if (response) return response;
       return fetch(event.request).then(function(response) {
-        // console.log('[ServiceWorker] Response', response);
         return response
       });
     })
@@ -75,8 +74,7 @@ self.addEventListener('fetch', function(event) {
 });
 
 function serveFiles(request, cacheName) {
-  var storageUrl = (request.url.endsWith('.tff')) ? `fonts/${request.url.slice(8).split("/")[4]}` /*.tff*/
-                    : (request.url.endsWith('currencies?'))? request.url.slice(8).split('/')[3] : request.url;
+  var storageUrl = (request.url.endsWith('currencies?'))? request.url.slice(8).split('/')[3] : request.url;
   /*check cache first then network*/
   return caches.open(cacheName).then(function(cache) {
     return cache.match(storageUrl).then(function(response) {
