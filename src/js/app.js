@@ -112,18 +112,20 @@
     switch(view){
       case 'currency_view':
         app.pageTitle.innerHTML = 'Currency Converter';
-        window.localforage.getItem('currencyList', function(err, list) {
-          if (list) {
-            //display ui
-            app.displayCurrencyList(list,temp);
-          } else {        
-            app.Api().getCurrencyList().then((data)=>{
-              window.localforage.setItem('currencyList', data);
-              //display ui
-              app.displayCurrencyList(data,temp);
-            });
-          }
-        }); 
+        app.Api().getCurrencyList().then((data)=>{
+          window.localforage.setItem('currencyList', data);
+          //display ui
+          console.log(data);
+          app.displayCurrencyList(data,temp);
+        });
+        // window.localforage.getItem('currencyList', function(err, list) {
+        //   if (list) {
+        //     //display ui
+        //     app.displayCurrencyList(list,temp);
+        //   } else {        
+            
+        //   }
+        // }); 
       break;
       case 'store_view':
         app.pageTitle.innerHTML = 'Rates Store';
