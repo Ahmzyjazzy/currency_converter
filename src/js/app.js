@@ -114,7 +114,6 @@
         app.pageTitle.innerHTML = 'Currency Converter';
         app.Api().getCurrencyList().then((data)=>{
           window.localforage.setItem('currencyList', data);
-          //display ui
           app.displayCurrencyList(data,temp);
         });
       break;
@@ -123,7 +122,6 @@
         
         window.localforage.getItem('rateList', function(err, list) {
           if (list) {
-            //display ui
             app.displayGrid(list,temp);
           } else {        
             M.toast({html: `Oops! Local store is empty` });
@@ -232,22 +230,18 @@
       }
     }); 
   }
-  app.computeResult = (data,amount)=>{
+  app.computeResult = (data,amount,symbol)=>{
     const key = Object.keys(data)[0];
     const val = data[key];
     const resultView = $(document ).find('p.result');
     const convertBtn  = $(document).find('#convertbtn');
     //calculate rate
     const result = parseFloat(amount) * parseFloat(val);
-    /^0\./.test(result) ? resultView.html(app.addCommas(result.toFixed(4))) 
-          : resultView.html(app.addCommas(result.toFixed(2)));    
-    // M.toast({html: `result: ${result.toFixed(2)}`});
+    /^0\./.test(result) ? resultView.html(`${symbol} ${app.addCommas(parseFloat(result).toFixed(4))}`) 
+          : resultView.html(`${symbol} ${app.addCommas(parseFloat(result).toFixed(2))}`);  
     convertBtn.html('Convert');
   }
   app.event = ()=>{
-    // Highlight Active Menu onLoad
-    const link = $(`a[href$='${window.location.pathname}']`);
-    link.addClass('active');
 
     $(document).on('click','#convertbtn', function(){
         const amountInp = $('#amount'), resultView = $('p.result'), fromDrp = $('#from_drp'), toDrp = $('#to_drp');
@@ -255,25 +249,27 @@
         const amount = amountInp.val();
         const from = fromDrp.val();
         const to = toDrp.val();
+        const sym = toDrp.find('option:selected').data('symbol');
+        const symbol = (sym == 'undefined') ? to : sym;
+
         if(amount.length == 0){
-          //display error
           M.toast({html: 'Please specify amount!'});
           return;
         }
         //for same currency e.g NGN to NGN
         if(from === to){
-          resultView.html(app.addCommas(parseFloat(amount).toFixed(2)));
+          resultView.html(`${symbol} ${app.addCommas(parseFloat(amount).toFixed(2))}`);
           return
         }
         $el.html('Converting...');
         app.Api().convertCurrency(from,to).then((data)=>{
-          app.computeResult(data,amount);
+          app.computeResult(data,amount,symbol);
           //save to loacal DB
           app.saveRate(data);
         }).catch((err)=>{
           //when error try local DB        
           app.Api().offlineConvert(`${from}_${to}`).then((data)=>{
-            app.computeResult(data,amount);
+            app.computeResult(data,amount,symbol);
           }).catch((err)=>{
             M.toast({html: `${err}` });
             resultView.html('0.00');
@@ -292,7 +288,6 @@
       console.log(from_id, to_id, rate);
 
       app.switchView('currency_view',template.rates, ()=>{
-
         
         const target = $(this);
         $('.menu').removeClass('active');

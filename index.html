@@ -37,7 +37,7 @@
     </div>
 
     <script id="converter-template" type="text/x-handlebars-template">
-      <div class="col s12 m4 l4 offset-m4 offset-l4">                
+      <div class="col s12 m4 l4 offset-m4 offset-l4 center">                
         <form class="col s12" onsubmit="event.preventDefault();">
           <div class="input-field col s12">
             <input type="number" id="amount" min="1" />
@@ -49,7 +49,7 @@
               <option value="{{id}}" data-symbol="{{symbol}}">{{id}} ({{name}})</option>
               {{/currency_list}}
             </select>
-            <label>From</label>
+            <label class="drp">From</label>
           </div>
           <div class="input-field col s12">            
             <select id="to_drp">
@@ -57,7 +57,7 @@
               <option value="{{id}}" data-symbol="{{symbol}}">{{id}} ({{name}})</option>
               {{/currency_list}}
             </select>
-            <label>To</label>
+            <label class="drp">To</label>
           </div>
           <div class="col s12 center">
             <p class="result">0.00</p>

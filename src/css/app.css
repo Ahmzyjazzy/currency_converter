@@ -24,9 +24,11 @@ a.menu.active.darken-1{
 }
 
 .input-field > label {
-  position: relative !important; 
-  left: 0rem !important;
   font-size: 0.8rem !important
+}
+
+.input-field > label.drp {
+  top: -100%;
 }
 
 .select2-container--default .select2-selection--single .select2-selection__rendered {
