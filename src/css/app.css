@@ -25,7 +25,7 @@ a.menu.active.darken-1{
 
 .input-field > label {
   position: relative !important; 
-  left: 0.1rem !important;
+  left: 0.8rem !important;
 }
 
 .select2-container--default .select2-selection--single .select2-selection__rendered {
