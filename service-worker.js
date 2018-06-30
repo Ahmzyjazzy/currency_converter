@@ -19,6 +19,8 @@ var staticFilesToCache = [
   '/src/js/handlebars.min.js',
   '/src/materialize/css/materialize.min.css',
   '/src/materialize/js/materialize.js',
+  '/src/select2/css/select2.min.css',
+  '/src/select2/js/select2.full.min.js',
   '/favicon.ico',
 ];
 
