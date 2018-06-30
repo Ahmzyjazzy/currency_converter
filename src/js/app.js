@@ -308,7 +308,7 @@
           toDrp.select2('val',to_id);
           /^0\./.test(rate) ? resultView.html(app.addCommas(rate.toFixed(4))) 
                 : resultView.html(app.addCommas(rate.toFixed(2)));
-        },1000);
+        },300);
         
       });
 
