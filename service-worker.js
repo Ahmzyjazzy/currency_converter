@@ -1,13 +1,7 @@
-<<<<<<< HEAD
-//service worker file
-var staticCacheName = 'currency-static-v2',
-    materialIcon = 'currency-icon';
-=======
 //service worker
 var staticCacheName = 'currency-static-v1',
     materialIcon = 'currency-icon',
     currencies = 'currency-list';
->>>>>>> master
 
 var allCaches = [
   staticCacheName,
