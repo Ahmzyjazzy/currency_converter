@@ -117,15 +117,7 @@
           //display ui
           console.log(data);
           app.displayCurrencyList(data,temp);
-        });
-        // window.localforage.getItem('currencyList', function(err, list) {
-        //   if (list) {
-        //     //display ui
-        //     app.displayCurrencyList(list,temp);
-        //   } else {        
-            
-        //   }
-        // }); 
+        }); 
       break;
       case 'store_view':
         app.pageTitle.innerHTML = 'Rates Store';
@@ -172,7 +164,8 @@
       })(lists),      
     }
     el.html(temp(context));
-    $('select').formSelect();
+    $('select').select2({width:'100%'});
+
     if (app.isLoading) {
       app.spinner.setAttribute('hidden', true);
       app.container.removeAttribute('hidden');
