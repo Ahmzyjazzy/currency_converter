@@ -122,6 +122,7 @@
   app route and view
   ==================================================================*/
   app.switchView = (view,temp,cb)=>{
+    localStorage.setItem('view',view);
     switch(view){
       case 'currency_view':
         app.pageTitle.innerHTML = 'Currency Converter';
@@ -208,6 +209,7 @@
           obj.from = from;
           obj.to = to;
           obj.rate = rate;
+          obj.ratevalue = ratevalue;
           arrayList .push(obj);
         }
         return arrayList;
@@ -293,9 +295,11 @@
         const to = toDrp.val();
         const sym = toDrp.find('option:selected').data('symbol');
         const symbol = (sym == '') ? to : sym;
-
+        //reset result view
+        resultView.html('0.00');
         if(amount.length == 0){
           app.showToast('Please specify amount!');
+          resultView.html('0.00');
           return;
         }
         //for same currency e.g NGN to NGN
@@ -313,7 +317,7 @@
           app.Api().offlineConvert(`${from}_${to}`).then((data)=>{
             app.computeResult(data,amount,symbol);
           }).catch((err)=>{
-            app.showToast(`${err}`,'error');
+            app.showToast(`${err}: device is not connected`,'error');
             resultView.html('0.00');
             $el.html('Convert');
           });
@@ -355,27 +359,40 @@
         const resultView = $('p.historyResult'), fromDrp = $('#from_drp2'), toDrp = $('#to_drp2');
         const from = fromDrp.val(), to = toDrp.val(), date = $('#date').val();
         const $el = $(this);
+        //clear resultview
+        resultView.html(``);
 
         if(date.length == 0){
           app.showToast('Please pick a date','info');
           return;
         }
-
+        $el.html(`Checking...`);
         const formatted_date = app.formatDate(date);
 
-        console.log(from, to, formatted_date);
-
         app.Api().getHistoricalData(from,to,formatted_date).then((data)=>{
+          console.log(data);
           const key = Object.keys(data)[0];
-          const dateObj = response[key];
+
+          if(key == 'status'){
+            const {error} = data;
+            app.showToast(`${error}`);
+            resultView.html(`${error}`);
+            $el.html(`Check`);
+            return;
+          }
+
+          const dateObj = data[key];
           const dateKey = Object.keys(dateObj)[0];
           const rate = dateObj[dateKey];
+          const result = /^0\./.test(rate) ? app.addCommas(parseFloat(rate).toFixed(4)) : app.addCommas(parseFloat(rate).toFixed(2));
 
-          resultView.html(`${date} ${rate}`);
-          app.showToast(`${rate}`);
+          resultView.html(`1 ${from} is equivalent to ${result} of ${to} from ${date} to ${date}`);
+          $el.html(`Check`);
 
-        }).catch((err)=>{
+        }).catch((err)=>{          
           app.showToast(`${err}`);
+          $el.html(`Check`);
+          resultView.html(``);
         });
 
      });
@@ -402,7 +419,8 @@
     //register service worker
     app.registerServiceWorker();
     //initial view
-    app.switchView('currency_view',template.rates);
+    const view = localStorage.getItem('view') !== undefined ? localStorage.getItem('view') : 'currency_view';
+    app.switchView(view,template.rates);
   }
 
   document.addEventListener('DOMContentLoaded', function() {
