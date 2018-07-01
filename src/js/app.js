@@ -9,7 +9,8 @@
   const currencyAPIUrlBase = 'https://free.currencyconverterapi.com/api/v5/';
   const template = {
     rates: Handlebars.compile($('#converter-template').html()),
-    store: Handlebars.compile($('#localstore-template').html())
+    store: Handlebars.compile($('#localstore-template').html()),
+    history: Handlebars.compile($('#history-template').html())
   }
   let app = {
     container: document.querySelector('.container-fluid'),
@@ -128,6 +129,13 @@
             M.toast({html: `Oops! Local store is empty` });
           }
         }); 
+      break;
+      case 'history_view':
+        app.pageTitle.innerHTML = 'Historical Data';
+        app.Api().getCurrencyList().then((data)=>{
+          window.localforage.setItem('currencyList', data);
+          app.displayCurrencyList(data,temp);
+        });
       break;
     }
     (cb && cb !== undefined && typeof(cb) == 'function') && cb();
@@ -282,36 +290,41 @@
         });
     });
 
-   $(document).on('click','.rate_item', function(){
-      const target = $(this);
-      const from_id = target.attr('data-from');
-      const to_id = target.attr('data-to');
-      const rate = parseFloat(target.attr('data-rate'));
-
-      app.switchView('currency_view',template.rates, ()=>{
-        
+     $(document).on('click','.rate_item', function(){
         const target = $(this);
-        $('.menu').removeClass('active');
-        $('[href="currency_view"]').addClass('active');
-        
-        setTimeout(()=>{
-          const amountInp = $(document).find('#amount'), resultView = $(document).find('p.result'), 
-              fromDrp = $(document).find('#from_drp'), toDrp = $(document).find('#to_drp');
+        const from_id = target.attr('data-from');
+        const to_id = target.attr('data-to');
+        const rate = parseFloat(target.attr('data-rate'));
 
-          amountInp.val(1).focus();  
-          fromDrp.val(from_id);
-          fromDrp.select2('destroy').select2({width:'100%'});
-          toDrp.val(to_id);
-          toDrp.select2('destroy').select2({width:'100%'});
-          const sym = toDrp.find('option:selected').data('symbol');
-          const symbol = (sym == '') ? toDrp.val() : sym;
+        app.switchView('currency_view',template.rates, ()=>{
+          
+          const target = $(this);
+          $('.menu').removeClass('active');
+          $('[href="currency_view"]').addClass('active');
+          
+          setTimeout(()=>{
+            const amountInp = $(document).find('#amount'), resultView = $(document).find('p.result'), 
+                fromDrp = $(document).find('#from_drp'), toDrp = $(document).find('#to_drp');
 
-          /^0\./.test(rate) ? resultView.html(`${symbol} ${app.addCommas(rate.toFixed(4))}`) 
-                : resultView.html(`${symbol} ${app.addCommas(rate.toFixed(2))}`);
-        },300);  
-      });
+            amountInp.val(1).focus();  
+            fromDrp.val(from_id);
+            fromDrp.select2('destroy').select2({width:'100%'});
+            toDrp.val(to_id);
+            toDrp.select2('destroy').select2({width:'100%'});
+            const sym = toDrp.find('option:selected').data('symbol');
+            const symbol = (sym == '') ? toDrp.val() : sym;
 
-   });
+            /^0\./.test(rate) ? resultView.html(`${symbol} ${app.addCommas(rate.toFixed(4))}`) 
+                  : resultView.html(`${symbol} ${app.addCommas(rate.toFixed(2))}`);
+          },300);  
+        });
+     });
+
+     $(document).on('click','#checkbtn', function(){
+        const date = $('#date'), resultView = $('p.history.result'), fromDrp = $('#from_drp2'), toDrp = $('#to_drp2');
+        const $el = $(this);
+
+     });
 
     $('a.menu').on('click', function(event) {
       // Block page load
