@@ -285,8 +285,6 @@
       const to_id = target.attr('data-to');
       const rate = parseFloat(target.attr('data-rate'));
 
-      console.log(from_id, to_id, rate);
-
       app.switchView('currency_view',template.rates, ()=>{
         
         const target = $(this);
@@ -297,17 +295,17 @@
           const amountInp = $(document).find('#amount'), resultView = $(document).find('p.result'), 
               fromDrp = $(document).find('#from_drp'), toDrp = $(document).find('#to_drp');
 
-          console.log(amountInp.length, fromDrp.length, toDrp.length);
           amountInp.val(1).focus();  
           fromDrp.val(from_id);
           fromDrp.select2('destroy').select2({width:'100%'});
           toDrp.val(to_id);
           toDrp.select2('destroy').select2({width:'100%'});
-          
-          /^0\./.test(rate) ? resultView.html(app.addCommas(rate.toFixed(4))) 
-                : resultView.html(app.addCommas(rate.toFixed(2)));
-        },300);
-        
+          const sym = toDrp.find('option:selected').data('symbol');
+          const symbol = (sym == '') ? toDrp.val() : sym;
+
+          /^0\./.test(rate) ? resultView.html(`${symbol} ${app.addCommas(rate.toFixed(4))}`) 
+                : resultView.html(`${symbol} ${app.addCommas(rate.toFixed(2))}`);
+        },300);  
       });
 
    });
