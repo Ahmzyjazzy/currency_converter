@@ -250,7 +250,8 @@
         const from = fromDrp.val();
         const to = toDrp.val();
         const sym = toDrp.find('option:selected').data('symbol');
-        const symbol = (sym == 'undefined') ? to : sym;
+        const symbol = (sym == '') ? to : sym;
+        console.log(`symbols is ${symbol} ${to} ${sym}`);
 
         if(amount.length == 0){
           M.toast({html: 'Please specify amount!'});
