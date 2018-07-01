@@ -12,7 +12,7 @@
     store: Handlebars.compile($('#localstore-template').html()),
     history: Handlebars.compile($('#history-template').html())
   }
-  let app = {
+  window.app = {
     container: document.querySelector('.container-fluid'),
     spinner: document.querySelector('.loader'),
     pageTitle: document.querySelector  ('.brand-logo'),
@@ -88,17 +88,29 @@
           });
         });
       },
+      getHistoricalData: (from,to,date)=>{
+        return new Promise((resolve,reject)=>{
+          fetch(`${currencyAPIUrlBase}convert?q=${from}_${to}&compact=ultra&date=${date}`).then((response)=>{ 
+            response.json().then((data)=>{
+                resolve(data);
+              });
+          }).catch((e)=> {
+              reject(e.message);
+          });
+        });
+      },
       offlineConvert: (data)=>{
         const key = data;
+        const errMsg = `Fetch failed: device not connected`;
         return new Promise((resolve,reject)=>{
           window.localforage.getItem('rateList', function(err, rates) {
             if (rates) {
               let exist = rates.filter((rateObj)=>{
                 return (Object.keys(rateObj)[0] == key);
               });
-              (exist.length > 0) ? resolve(exist[0]) : reject(`Fetch failed: Please try connect to the internet`);
+              (exist.length > 0) ? resolve(exist[0]) : reject(errMsg);
             }else{
-              reject(`Fetch failed: Please try connect to the internet`);
+              reject(errMsg);
             }        
           }); 
         })
@@ -110,6 +122,11 @@
   app route and view
   ==================================================================*/
   app.switchView = (view,temp,cb)=>{
+    app.spinner.removeAttribute('hidden');
+    app.container.setAttribute('hidden',true);
+    app.isLoading = true;
+
+    localStorage.setItem('view',view);    
     switch(view){
       case 'currency_view':
         app.pageTitle.innerHTML = 'Currency Converter';
@@ -126,7 +143,7 @@
             app.displayGrid(list,temp);
           } else {        
             app.displayGrid([],temp);
-            M.toast({html: `Oops! Local store is empty` });
+            app.showToast(`Oops! Local store is empty`,`info`);
           }
         }); 
       break;
@@ -135,6 +152,7 @@
         app.Api().getCurrencyList().then((data)=>{
           window.localforage.setItem('currencyList', data);
           app.displayCurrencyList(data,temp);
+          $('#date').datepicker();
         });
       break;
     }
@@ -195,6 +213,7 @@
           obj.from = from;
           obj.to = to;
           obj.rate = rate;
+          obj.ratevalue = ratevalue;
           arrayList .push(obj);
         }
         return arrayList;
@@ -252,6 +271,24 @@
           : resultView.html(`${symbol} ${app.addCommas(parseFloat(result).toFixed(2))}`);  
     convertBtn.html('Convert');
   }
+  app.formatDate = (date)=>{
+    const d = new Date(date);
+    return `${d.getFullYear()}-${d.getMonth()+ 1}-${d.getDate()}`;
+  }
+  app.showToast = (msg,type)=>{
+    const infoClass = (type !== undefined) ? type.toLowerCase() == 'error' ? 'red-text' 
+        : type.toLowerCase() == 'success' ? 'teal-text' : 'blue-text'
+      : 'blue-text';
+    const icon = (type !== undefined) ? type.toLowerCase() == 'error' ? 'error' 
+        : type.toLowerCase() == 'success' ? 'check_circle' : 'info'
+      : 'info';
+    const str = `<div class="left" style="display: inherit !important;"><i class="material-icons ${infoClass}">${icon}</i>${msg}</div>`;
+    const options = {
+      html: str,
+      displayLength: 3000,      
+    }    
+    return M.toast(options);
+  }
   app.event = ()=>{
 
     $(document).on('click','#convertbtn', function(){
@@ -262,9 +299,11 @@
         const to = toDrp.val();
         const sym = toDrp.find('option:selected').data('symbol');
         const symbol = (sym == '') ? to : sym;
-
+        //reset result view
+        resultView.html('0.00');
         if(amount.length == 0){
-          M.toast({html: 'Please specify amount!'});
+          app.showToast('Please specify amount!');
+          resultView.html('0.00');
           return;
         }
         //for same currency e.g NGN to NGN
@@ -282,7 +321,7 @@
           app.Api().offlineConvert(`${from}_${to}`).then((data)=>{
             app.computeResult(data,amount,symbol);
           }).catch((err)=>{
-            M.toast({html: `${err}` });
+            app.showToast(`${err}: device is not connected`,'error');
             resultView.html('0.00');
             $el.html('Convert');
           });
@@ -321,8 +360,44 @@
      });
 
      $(document).on('click','#checkbtn', function(){
-        const date = $('#date'), resultView = $('p.history.result'), fromDrp = $('#from_drp2'), toDrp = $('#to_drp2');
+        const resultView = $('p.historyResult'), fromDrp = $('#from_drp2'), toDrp = $('#to_drp2');
+        const from = fromDrp.val(), to = toDrp.val(), date = $('#date').val();
         const $el = $(this);
+        //clear resultview
+        resultView.html(``);
+
+        if(date.length == 0){
+          app.showToast('Please pick a date','info');
+          return;
+        }
+        $el.html(`Checking...`);
+        const formatted_date = app.formatDate(date);
+
+        app.Api().getHistoricalData(from,to,formatted_date).then((data)=>{
+          console.log(data);
+          const key = Object.keys(data)[0];
+
+          if(key == 'status'){
+            const {error} = data;
+            app.showToast(`${error}`);
+            resultView.html(`${error}`);
+            $el.html(`Check`);
+            return;
+          }
+
+          const dateObj = data[key];
+          const dateKey = Object.keys(dateObj)[0];
+          const rate = dateObj[dateKey];
+          const result = /^0\./.test(rate) ? app.addCommas(parseFloat(rate).toFixed(4)) : app.addCommas(parseFloat(rate).toFixed(2));
+
+          resultView.html(`1 ${from} is equivalent to ${result} of ${to} from ${date} to ${date}`);
+          $el.html(`Check`);
+
+        }).catch((err)=>{          
+          app.showToast(`${err}`);
+          $el.html(`Check`);
+          resultView.html(``);
+        });
 
      });
 
@@ -348,7 +423,9 @@
     //register service worker
     app.registerServiceWorker();
     //initial view
-    app.switchView('currency_view',template.rates);
+    const view = localStorage.getItem('view') != 'null' ? localStorage.getItem('view') : 'currency_view';
+    const temp = ((view == 'currency_view') ? template.rates : ((view == 'store_view') ? template.store : template.history));
+    app.switchView(view,temp);
   }
 
   document.addEventListener('DOMContentLoaded', function() {
