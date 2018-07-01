@@ -300,8 +300,9 @@
           console.log(amountInp.length, fromDrp.length, toDrp.length);
           amountInp.val(1).focus();  
           fromDrp.val(from_id);
+          fromDrp.select2('destroy').select2({width:'100%'});
           toDrp.val(to_id);
-          $(document).find('select').select2('destroy').select2({width:'100%'});
+          toDrp.select2('destroy').select2({width:'100%'});
           
           /^0\./.test(rate) ? resultView.html(app.addCommas(rate.toFixed(4))) 
                 : resultView.html(app.addCommas(rate.toFixed(2)));
