@@ -124,6 +124,7 @@
           if (list) {
             app.displayGrid(list,temp);
           } else {        
+            app.displayGrid([],temp);
             M.toast({html: `Oops! Local store is empty` });
           }
         }); 
@@ -150,6 +151,7 @@
     const context = {
       currency_list: ((items)=>{
         const arrayList = []; 
+        if($.isEmptyObject(items)) return arrayList;
         for(let i of Object.keys(items).sort()){
           let obj = {};
           let { id, currencyName, currencySymbol } = items[i];
@@ -173,7 +175,8 @@
   app.displayGrid = (lists,temp)=>{
     const context = {
       ratesList: ((items)=>{
-        const arrayList = []; 
+        const arrayList = [];
+        if(items.length == 0) return arrayList; 
         for(const t of items.sort()){
           const from = Object.keys(t)[0].split('_')[0];
           const to = Object.keys(t)[0].split('_')[1];
