@@ -9,9 +9,10 @@
   const currencyAPIUrlBase = 'https://free.currencyconverterapi.com/api/v5/';
   const template = {
     rates: Handlebars.compile($('#converter-template').html()),
-    store: Handlebars.compile($('#localstore-template').html())
+    store: Handlebars.compile($('#localstore-template').html()),
+    history: Handlebars.compile($('#history-template').html())
   }
-  let app = {
+  window.app = {
     container: document.querySelector('.container-fluid'),
     spinner: document.querySelector('.loader'),
     pageTitle: document.querySelector  ('.brand-logo'),
@@ -87,17 +88,29 @@
           });
         });
       },
+      getHistoricalData: (from,to,date)=>{
+        return new Promise((resolve,reject)=>{
+          fetch(`${currencyAPIUrlBase}convert?q=${from}_${to}&compact=ultra&date=${date}`).then((response)=>{ 
+            response.json().then((data)=>{
+                resolve(data);
+              });
+          }).catch((e)=> {
+              reject(e.message);
+          });
+        });
+      },
       offlineConvert: (data)=>{
         const key = data;
+        const errMsg = `Fetch failed: device not connected`;
         return new Promise((resolve,reject)=>{
           window.localforage.getItem('rateList', function(err, rates) {
             if (rates) {
               let exist = rates.filter((rateObj)=>{
                 return (Object.keys(rateObj)[0] == key);
               });
-              (exist.length > 0) ? resolve(exist[0]) : reject(`Fetch failed: Please try connect to the internet`);
+              (exist.length > 0) ? resolve(exist[0]) : reject(errMsg);
             }else{
-              reject(`Fetch failed: Please try connect to the internet`);
+              reject(errMsg);
             }        
           }); 
         })
@@ -125,9 +138,17 @@
             app.displayGrid(list,temp);
           } else {        
             app.displayGrid([],temp);
-            M.toast({html: `Oops! Local store is empty` });
+            app.showToast(`Oops! Local store is empty`,`info`);
           }
         }); 
+      break;
+      case 'history_view':
+        app.pageTitle.innerHTML = 'Historical Data';
+        app.Api().getCurrencyList().then((data)=>{
+          window.localforage.setItem('currencyList', data);
+          app.displayCurrencyList(data,temp);
+          $('#date').datepicker();
+        });
       break;
     }
     (cb && cb !== undefined && typeof(cb) == 'function') && cb();
@@ -175,8 +196,8 @@
   app.displayGrid = (lists,temp)=>{
     const context = {
       ratesList: ((items)=>{
-        const arrayList = [];
-        if(items.length == 0) return arrayList; 
+        const arrayList = []; 
+        if(items.length == 0) return arrayList;
         for(const t of items.sort()){
           const from = Object.keys(t)[0].split('_')[0];
           const to = Object.keys(t)[0].split('_')[1];
@@ -244,6 +265,24 @@
           : resultView.html(`${symbol} ${app.addCommas(parseFloat(result).toFixed(2))}`);  
     convertBtn.html('Convert');
   }
+  app.formatDate = (date)=>{
+    const d = new Date(date);
+    return `${d.getFullYear()}-${d.getMonth()+ 1}-${d.getDate()}`;
+  }
+  app.showToast = (msg,type)=>{
+    const infoClass = (type !== undefined) ? type.toLowerCase() == 'error' ? 'red-text' 
+        : type.toLowerCase() == 'success' ? 'teal-text' : 'blue-text'
+      : 'blue-text';
+    const icon = (type !== undefined) ? type.toLowerCase() == 'error' ? 'error' 
+        : type.toLowerCase() == 'success' ? 'check_circle' : 'info'
+      : 'info';
+    const str = `<div class="left" style="display: inherit !important;"><i class="material-icons ${infoClass}">${icon}</i>${msg}</div>`;
+    const options = {
+      html: str,
+      displayLength: 3000,      
+    }    
+    return M.toast(options);
+  }
   app.event = ()=>{
 
     $(document).on('click','#convertbtn', function(){
@@ -256,7 +295,7 @@
         const symbol = (sym == '') ? to : sym;
 
         if(amount.length == 0){
-          M.toast({html: 'Please specify amount!'});
+          app.showToast('Please specify amount!');
           return;
         }
         //for same currency e.g NGN to NGN
@@ -274,7 +313,7 @@
           app.Api().offlineConvert(`${from}_${to}`).then((data)=>{
             app.computeResult(data,amount,symbol);
           }).catch((err)=>{
-            M.toast({html: `${err}` });
+            app.showToast(`${err}`,'error');
             resultView.html('0.00');
             $el.html('Convert');
           });
@@ -282,36 +321,64 @@
         });
     });
 
-   $(document).on('click','.rate_item', function(){
-      const target = $(this);
-      const from_id = target.attr('data-from');
-      const to_id = target.attr('data-to');
-      const rate = parseFloat(target.attr('data-rate'));
-
-      app.switchView('currency_view',template.rates, ()=>{
-        
+     $(document).on('click','.rate_item', function(){
         const target = $(this);
-        $('.menu').removeClass('active');
-        $('[href="currency_view"]').addClass('active');
-        
-        setTimeout(()=>{
-          const amountInp = $(document).find('#amount'), resultView = $(document).find('p.result'), 
-              fromDrp = $(document).find('#from_drp'), toDrp = $(document).find('#to_drp');
+        const from_id = target.attr('data-from');
+        const to_id = target.attr('data-to');
+        const rate = parseFloat(target.attr('data-rate'));
 
-          amountInp.val(1).focus();  
-          fromDrp.val(from_id);
-          fromDrp.select2('destroy').select2({width:'100%'});
-          toDrp.val(to_id);
-          toDrp.select2('destroy').select2({width:'100%'});
-          const sym = toDrp.find('option:selected').data('symbol');
-          const symbol = (sym == '') ? toDrp.val() : sym;
+        app.switchView('currency_view',template.rates, ()=>{
+          
+          const target = $(this);
+          $('.menu').removeClass('active');
+          $('[href="currency_view"]').addClass('active');
+          
+          setTimeout(()=>{
+            const amountInp = $(document).find('#amount'), resultView = $(document).find('p.result'), 
+                fromDrp = $(document).find('#from_drp'), toDrp = $(document).find('#to_drp');
 
-          /^0\./.test(rate) ? resultView.html(`${symbol} ${app.addCommas(rate.toFixed(4))}`) 
-                : resultView.html(`${symbol} ${app.addCommas(rate.toFixed(2))}`);
-        },300);  
-      });
+            amountInp.val(1).focus();  
+            fromDrp.val(from_id);
+            fromDrp.select2('destroy').select2({width:'100%'});
+            toDrp.val(to_id);
+            toDrp.select2('destroy').select2({width:'100%'});
+            const sym = toDrp.find('option:selected').data('symbol');
+            const symbol = (sym == '') ? toDrp.val() : sym;
 
-   });
+            /^0\./.test(rate) ? resultView.html(`${symbol} ${app.addCommas(rate.toFixed(4))}`) 
+                  : resultView.html(`${symbol} ${app.addCommas(rate.toFixed(2))}`);
+          },300);  
+        });
+     });
+
+     $(document).on('click','#checkbtn', function(){
+        const resultView = $('p.historyResult'), fromDrp = $('#from_drp2'), toDrp = $('#to_drp2');
+        const from = fromDrp.val(), to = toDrp.val(), date = $('#date').val();
+        const $el = $(this);
+
+        if(date.length == 0){
+          app.showToast('Please pick a date','info');
+          return;
+        }
+
+        const formatted_date = app.formatDate(date);
+
+        console.log(from, to, formatted_date);
+
+        app.Api().getHistoricalData(from,to,formatted_date).then((data)=>{
+          const key = Object.keys(data)[0];
+          const dateObj = response[key];
+          const dateKey = Object.keys(dateObj)[0];
+          const rate = dateObj[dateKey];
+
+          resultView.html(`${date} ${rate}`);
+          app.showToast(`${rate}`);
+
+        }).catch((err)=>{
+          app.showToast(`${err}`);
+        });
+
+     });
 
     $('a.menu').on('click', function(event) {
       // Block page load

@@ -15,6 +15,16 @@ p.result {
     font-weight: 500;
 }
 
+p.historyResult{
+  font-size: 1.3em;
+  font-weight: 500;
+}
+
+.datepicker-table td.is-selected {
+  background-color: #e91e63 !important;
+  color: #fff;
+}
+
 .black.lighten {
     background-color: #000000c2 !important;
 }

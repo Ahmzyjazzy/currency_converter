@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0"/>
     <title>Currency Converter</title>
 
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="favicon.ico" sizes="16x16" type="image/png">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/favicon.ico" sizes="16x16" type="image/png">
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
     <link href="src/materialize/css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection"> 
@@ -86,6 +86,39 @@
       </div>
     </script>
 
+    <script id="history-template" type="text/x-handlebars-template">
+      <div class="col s12 m4 l4 offset-m4 offset-l4 center">                
+        <form class="col s12" onsubmit="event.preventDefault();">
+          <div class="input-field col s12">
+            <input type="text" id="date" class="datepicker" />
+            <label for="amount">Pick Date</label>
+          </div>
+          <div class="input-field col s12">                  
+            <select id="from_drp2" data-live-search="true">
+              {{#currency_list}}
+              <option value="{{id}}" data-symbol="{{symbol}}">{{id}} ({{name}})</option>
+              {{/currency_list}}
+            </select>
+            <label class="drp">From</label>
+          </div>
+          <div class="input-field col s12">            
+            <select id="to_drp2">
+              {{#currency_list}}
+              <option value="{{id}}" data-symbol="{{symbol}}">{{id}} ({{name}})</option>
+              {{/currency_list}}
+            </select>
+            <label class="drp">To</label>
+          </div>
+          <button class="btn waves-effect waves-light block" id="checkbtn" style="width: 95%;">
+            Check
+          </button>
+          <div class="col s12 center">
+            <p class="historyResult"></p>
+          </div>
+        </form>
+      </div>
+    </script>
+
     <div class="loader">
         <svg viewBox="0 0 32 32" width="32" height="32">
           <circle id="spinner" cx="16" cy="16" r="14" fill="none"></circle>
@@ -99,6 +132,7 @@
       <ul>
         <li class="waves-effect waves-light"><a href="currency_view" data-temp="rates" class="menu teal darken-1 active"><i class="material-icons">hourglass_empty</i></a></li>
         <li class="waves-effect waves-light"><a href="store_view" data-temp="store" class="menu teal darken-1"><i class="material-icons">format_list_bulleted</i></a></li>
+        <li class="waves-effect waves-light"><a href="history_view" data-temp="history" class="menu teal darken-1"><i class="material-icons">history</i></a>Hello</li>
       </ul>
     </div>
 
