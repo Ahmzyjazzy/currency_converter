@@ -126,6 +126,10 @@
     app.container.setAttribute('hidden',true);
     app.isLoading = true;
 
+    // Highlight Active Menu on Load
+    $('.menu').removeClass('active');
+    $(`[href="${view}"]`).addClass('active');
+    
     localStorage.setItem('view',view);    
     switch(view){
       case 'currency_view':
