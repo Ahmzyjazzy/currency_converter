@@ -122,7 +122,11 @@
   app route and view
   ==================================================================*/
   app.switchView = (view,temp,cb)=>{
-    localStorage.setItem('view',view);
+    app.spinner.removeAttribute('hidden');
+    app.container.setAttribute('hidden',true);
+    app.isLoading = true;
+
+    localStorage.setItem('view',view);    
     switch(view){
       case 'currency_view':
         app.pageTitle.innerHTML = 'Currency Converter';
@@ -419,8 +423,9 @@
     //register service worker
     app.registerServiceWorker();
     //initial view
-    const view = localStorage.getItem('view') !== undefined ? localStorage.getItem('view') : 'currency_view';
-    app.switchView(view,template.rates);
+    const view = localStorage.getItem('view') != 'null' ? localStorage.getItem('view') : 'currency_view';
+    const temp = ((view == 'currency_view') ? template.rates : ((view == 'store_view') ? template.store : template.history));
+    app.switchView(view,temp);
   }
 
   document.addEventListener('DOMContentLoaded', function() {
