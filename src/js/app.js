@@ -127,8 +127,8 @@
     app.isLoading = true;
 
     // Highlight Active Menu on Load
-    const link = $(`a.menu[href='${view}']`);
-    link.addClass('active');
+    $('.menu').removeClass('active');
+    $(`[href="${view}"]`).addClass('active');
 
     localStorage.setItem('view',view);    
     switch(view){
