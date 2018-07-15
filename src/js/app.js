@@ -95,13 +95,13 @@
                 resolve(data);
               });
           }).catch((e)=> {
-              reject(e.message);
+              reject(`${e.message}: device not connected`);
           });
         });
       },
       offlineConvert: (data)=>{
         const key = data;
-        const errMsg = `Fetch failed: device not connected`;
+        const errMsg = `Failed to fetch: device not connected`;
         return new Promise((resolve,reject)=>{
           window.localforage.getItem('rateList', function(err, rates) {
             if (rates) {
@@ -129,7 +129,7 @@
     // Highlight Active Menu on Load
     $('.menu').removeClass('active');
     $(`[href="${view}"]`).addClass('active');
-
+    
     localStorage.setItem('view',view);    
     switch(view){
       case 'currency_view':
@@ -325,7 +325,7 @@
           app.Api().offlineConvert(`${from}_${to}`).then((data)=>{
             app.computeResult(data,amount,symbol);
           }).catch((err)=>{
-            app.showToast(`${err}: device is not connected`,'error');
+            app.showToast(`${err}`,'error');
             resultView.html('0.00');
             $el.html('Convert');
           });
@@ -398,7 +398,7 @@
           $el.html(`Check`);
 
         }).catch((err)=>{          
-          app.showToast(`${err}`);
+          app.showToast(`${err}`,'error');
           $el.html(`Check`);
           resultView.html(``);
         });
