@@ -280,6 +280,9 @@
     return `${d.getFullYear()}-${d.getMonth()+ 1}-${d.getDate()}`;
   }
   app.showToast = (msg,type)=>{
+    const toastCont = $(document).find('#toast-container');
+    if(toastCont.length > 0) return;
+
     const infoClass = (type !== undefined) ? type.toLowerCase() == 'error' ? 'red-text' 
         : type.toLowerCase() == 'success' ? 'teal-text' : 'blue-text'
       : 'blue-text';
