@@ -6,7 +6,8 @@
   global variables used across
   ==================================================================*/
   const el = $('#app');
-  const currencyAPIUrlBase = 'https://free.currencyconverterapi.com/api/v5/';
+  const currencyAPIUrlBase = 'https://free.currconv.com/api/v5/';
+  const apiKey = 'bff7467a891f5f9675eb';
   const template = {
     rates: Handlebars.compile($('#converter-template').html()),
     store: Handlebars.compile($('#localstore-template').html()),
@@ -68,7 +69,7 @@
     return {
       getCurrencyList: ()=>{
         return new Promise((resolve,reject)=>{
-          fetch(`${currencyAPIUrlBase}currencies?`).then((response)=>{ 
+          fetch(`${currencyAPIUrlBase}currencies?apiKey=${apiKey}`).then((response)=>{ 
             response.json().then((data)=>{
                 resolve(data.results);
               });
@@ -79,7 +80,7 @@
       },
       convertCurrency: (from,to)=>{
         return new Promise((resolve,reject)=>{
-          fetch(`${currencyAPIUrlBase}convert?q=${from}_${to}&compact=ultra`).then((response)=>{ 
+          fetch(`${currencyAPIUrlBase}convert?q=${from}_${to}&compact=ultra&apiKey=${apiKey}`).then((response)=>{ 
             response.json().then((data)=>{
                 resolve(data);
               });
@@ -90,7 +91,7 @@
       },
       getHistoricalData: (from,to,date)=>{
         return new Promise((resolve,reject)=>{
-          fetch(`${currencyAPIUrlBase}convert?q=${from}_${to}&compact=ultra&date=${date}`).then((response)=>{ 
+          fetch(`${currencyAPIUrlBase}convert?q=${from}_${to}&compact=ultra&date=${date}&apiKey=${apiKey}`).then((response)=>{ 
             response.json().then((data)=>{
                 resolve(data);
               });
