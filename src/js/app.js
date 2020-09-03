@@ -91,11 +91,7 @@
       },
       getHistoricalData: (from,to,date)=>{
         return new Promise((resolve,reject)=>{
-<<<<<<< HEAD
-          fetch(`${currencyAPIUrlBase}convert?q=${from}_${to}&compact=ultra&date=${date}`).then((response)=>{ 
-=======
           fetch(`${currencyAPIUrlBase}convert?q=${from}_${to}&compact=ultra&date=${date}&apiKey=${apiKey}`).then((response)=>{ 
->>>>>>> master
             response.json().then((data)=>{
                 resolve(data);
               });
