@@ -9,7 +9,7 @@ var allCaches = [
   currencies
 ];
 
-var scope = '/currency_converter/';
+var scope = '/';
 
 var staticFilesToCache = [
   `${scope}`,
